@@ -21,8 +21,6 @@ flowchart LR
 ```
 
 ```typescript
-import { factory, traverse } from 'dagio';
-
 const dag = factory()
   .add('a')
   .add('b')
@@ -33,11 +31,11 @@ const dag = factory()
 
 /*
 const dag: {
+    readonly a: [];
     readonly b: [];
-    readonly d: [];
-    readonly e: ["b", "d"];
-    readonly c: ["e"];
-    readonly a: ["b", "c"];
+    readonly c: ["a", "b"];
+    readonly d: ["c"];
+    readonly e: ["b", "c"];
 }
 */
 
@@ -51,14 +49,22 @@ const t = traverse(dag)
 
 /*
 const t: {
+    a: () => number;
     b: () => number;
-    d: () => number;
-    e: () => number;
     c: () => number;
-    a: () => string;
+    d: () => number;
+    e: () => string;
 }
 */
 
 console.log(t.d() % 2 === 0); // true
 console.log(t.e() === '0.44'); // true
+
 ```
+
+## Roadmap
+
+- `traverse > setDefault`: easily set traverse fn that are shared by a lot of nodes
+- `traverse(dag, { middleware })`: eg. add middleware to memoize, or to inject configs
+  - pre middleware -> change what the functions receives (eg. preload deps)
+  - post middleware -> change the functions (eg. moize)
