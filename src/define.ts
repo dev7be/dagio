@@ -1,10 +1,10 @@
 import type { AnyGraph } from './types';
 
 export type Define<G extends AnyGraph> = {
-  add: <K extends string, Needs extends ReadonlyArray<keyof G & string>>(
+  add: <K extends string, Deps extends ReadonlyArray<keyof G & string>>(
     k: Exclude<K, keyof G & string>,
-    ...needs: Needs
-  ) => Define<G & Readonly<{ [k in K]: Needs }>>;
+    ...deps: Deps
+  ) => Define<G & Readonly<{ [k in K]: Deps }>>;
 
   commit: () => { [k in keyof G]: G[k] };
 };
