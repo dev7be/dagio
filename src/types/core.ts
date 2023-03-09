@@ -1,8 +1,15 @@
-import { Expand } from './utility';
+import type { AnyIndex, Expand } from './utility';
 
-export type Index = string | number | symbol;
+export type AnyGraph<K extends AnyIndex = AnyIndex> = Record<
+  K,
+  ReadonlyArray<K>
+> &
+  Record<symbol, never>;
 
-export type AnyGraph<K extends Index = Index> = Record<K, ReadonlyArray<K>>;
+export type AnyDepsDict<K extends AnyIndex = AnyIndex> = Record<
+  K,
+  () => unknown
+>;
 
 export type DepsOf<
   G extends AnyGraph,
@@ -28,6 +35,7 @@ export type PickDepsValues<
 > = Expand<Pick<V, DepsOf<G, K> & keyof V>>;
 
 export type CommitStep<T> = { commit: () => { [k in keyof T]: T[k] } };
+
 export type OnStep<
   G extends AnyGraph,
   V extends ValuesFor<G>,
@@ -45,16 +53,22 @@ export type TraverseStep<
   V extends ValuesFor<G>,
 > = keyof G extends keyof V ? CommitStep<V> : OnStep<G, V>;
 
-export type Unused<T extends Index, Used extends Index> = T extends Used
+export type Unused<T extends AnyIndex, Used extends AnyIndex> = T extends Used
   ? never
   : T;
 
-export type AddStep<Deps extends AnyGraph> = {
-  add: <K extends Index, Needs extends ReadonlyArray<keyof Deps>>(
-    k: Unused<K, keyof Deps>,
+export type AddStep<G extends AnyGraph> = {
+  add: <
+    K extends Exclude<AnyIndex, symbol>,
+    Needs extends ReadonlyArray<keyof G>,
+  >(
+    k: Unused<K, keyof G>,
     ...needs: Needs
-  ) => DefineStep<Deps & Readonly<{ [k in K]: Needs }>>;
+  ) => DefineStep<G & Readonly<{ [k in K]: Needs }>>;
 };
 
-export type DefineStep<Deps extends AnyGraph> = CommitStep<Deps> &
-  AddStep<Deps>;
+export type DefineStep<G extends AnyGraph> = CommitStep<G> & AddStep<G>;
+
+export type Resolved<T extends AnyDepsDict> = Expand<{
+  [k in keyof T]: ReturnType<T[k]>;
+}>;
