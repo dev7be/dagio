@@ -4,24 +4,12 @@ Work in progress, use at your own discretion.
 
 ## Docs
 
-Just two functions: 
+### `define()`
 
-- `define` is used to build DAGs. It makes it impossible to introduce cycles by design as you can only reference nodes that have already been defined.
-- `traverse` lets you traverse a DAG while generating data for each node.
-
-## Example
-
-```mermaid
-flowchart LR
-    C --> A
-    C --> B
-    D --> C
-    E --> B
-    E --> C
-```
+`define()` is used to build DAGs. It makes it impossible to introduce cycles by design as you can only reference nodes that have already been defined.
 
 ```typescript
-const dag = factory()
+const dag = define()
   .add('a')
   .add('b')
   .add('c', 'a', 'b')
@@ -31,40 +19,112 @@ const dag = factory()
 
 /*
 const dag: {
-    readonly a: [];
-    readonly b: [];
-    readonly c: ["a", "b"];
-    readonly d: ["c"];
-    readonly e: ["b", "c"];
+  readonly a: [];
+  readonly b: [];
+  readonly c: ["a", "b"];
+  readonly d: ["c"];
+  readonly e: ["b", "c"];
 }
 */
 
-const t = traverse(dag)
-  .set('a', () => 42)
-  .set('b', () => 33)
-  .set('c', ({ a, b }) => a() + b())
-  .set('d', ({ c }) => c() * 2)
-  .set('e', ({ b, c }) => String(b() / c()))
+const mixed = define()
+  .add('a')
+  .add(1)
+  .add('c', 'a', 1)
+  .add(2, 'c')
+  .add(3, 1, 'c')
   .commit();
 
 /*
-const t: {
-    a: () => number;
-    b: () => number;
-    c: () => number;
-    d: () => number;
-    e: () => string;
+const mixed: {
+  readonly a: [];
+  readonly 1: [];
+  readonly c: ["a", 1];
+  readonly 2: ["c"];
+  readonly 3: [1, "c"];
 }
 */
-
-console.log(t.d() % 2 === 0); // true
-console.log(t.e() === '0.44'); // true
-
 ```
 
-## Roadmap
+### `traverse()`
 
-- `traverse > setDefault`: easily set traverse fn that are shared by a lot of nodes
-- `traverse(dag, { middleware })`: eg. add middleware to memoize, or to inject configs
-  - pre middleware -> change what the functions receives (eg. preload deps)
-  - post middleware -> change the functions (eg. moize)
+`traverse()` lets you traverse a DAG while generating data for each node.
+
+```typescript
+traverse(dag)
+  .on('a', () => 20)
+  .on('b', () => 5)
+  .on('c', ({ a, b }) => a() + b())
+  .on('d', ({ c }) => c() * 2)
+  .on('e', ({ b, c }) => [b(), c()].join(','))
+  .commit();
+
+/*
+{
+  a: () => number;
+  b: () => number;
+  c: () => number;
+  d: () => number;
+  e: () => string;
+}
+*/
+```
+
+### Utilities
+
+#### `resolve()`
+
+`resolve()` takes a dictionary of arg-less functions and returns a dictionary with all of these functions evaluated.
+
+```typescript
+resolve(
+  traverse(dag)
+    .on('a', () => 20)
+    .on('b', () => 5)
+    .on('c', (deps) =>
+      Object.values(resolve(deps)).reduce((acc, c) => acc + c, 0),
+    )
+    .on('d', ({ c }) => c() * 2)
+    .on('e', (deps) => Object.values(resolve(deps)).join(','))
+    .commit(),
+);
+
+/*
+{
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: string;
+}
+*/
+```
+
+#### `resolved()`
+
+`resolved()` wraps a function to resolve its arguments.
+
+```typescript
+traverse(dag)
+  .on('a', () => 20)
+  .on('b', () => 5)
+  .on(
+    'c',
+    resolved((deps) => Object.values(deps).reduce((acc, c) => acc + c, 0)),
+  )
+  .on('d', ({ c }) => c() * 2)
+  .on(
+    'e',
+    resolved((deps) => Object.values(deps).join(',')),
+  )
+  .commit();
+
+/*
+{
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: string;
+}
+```
