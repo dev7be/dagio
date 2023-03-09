@@ -26,12 +26,12 @@ export type PickDepsValues<
 > = Pick<V, DepsOf<G, K> & keyof V>;
 
 export type CommitStep<T> = { commit: () => { [k in keyof T]: T[k] } };
-export type SetStep<
+export type OnStep<
   G extends AnyGraph,
   V extends ValuesFor<G>,
 > = keyof V extends keyof G
   ? {
-      set: <K extends Leafs<G, keyof V>, U>(
+      on: <K extends Leafs<G, keyof V>, U>(
         k: K,
         fn: (v: PickDepsValues<G, V, K>) => U,
       ) => TraverseStep<G, V & { [k in K]: () => U }>;
@@ -41,7 +41,7 @@ export type SetStep<
 export type TraverseStep<
   G extends AnyGraph,
   V extends ValuesFor<G>,
-> = keyof G extends keyof V ? CommitStep<V> : SetStep<G, V>;
+> = keyof G extends keyof V ? CommitStep<V> : OnStep<G, V>;
 
 export type Unused<T extends Index, Used extends Index> = T extends Used
   ? never

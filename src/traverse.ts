@@ -7,9 +7,9 @@ import type {
 } from './types';
 
 const pickDepsValues = <
-  G extends AnyGraph,
+  G extends AnyGraph<keyof G>,
   V extends ValuesFor<G>,
-  K extends keyof G,
+  K extends keyof G & keyof V,
 >(
   graph: G,
   values: V,
@@ -32,7 +32,7 @@ const step = <G extends AnyGraph, V extends ValuesFor<G>>(
         commit: () => values,
       } satisfies CommitStep<V>)
     : {
-        set: (k, v) =>
+        on: (k, v) =>
           step(graph, {
             ...values,
             [k]: () => v(pickDepsValues(graph, values, k)),
