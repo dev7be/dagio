@@ -1,3 +1,5 @@
+import { Expand } from './utility';
+
 export type Index = string | number | symbol;
 
 export type AnyGraph<K extends Index = Index> = Record<K, ReadonlyArray<K>>;
@@ -23,7 +25,7 @@ export type PickDepsValues<
   G extends AnyGraph,
   V extends ValuesFor<G>,
   K extends keyof G,
-> = Pick<V, DepsOf<G, K> & keyof V>;
+> = Expand<Pick<V, DepsOf<G, K> & keyof V>>;
 
 export type CommitStep<T> = { commit: () => { [k in keyof T]: T[k] } };
 export type OnStep<

@@ -4,7 +4,7 @@ import type {
   PickDepsValues,
   TraverseStep,
   CommitStep,
-} from './types';
+} from './types/core';
 
 const pickDepsValues = <
   G extends AnyGraph<keyof G>,

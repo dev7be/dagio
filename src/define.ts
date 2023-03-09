@@ -1,4 +1,4 @@
-import type { AnyGraph, DefineStep } from './types';
+import type { AnyGraph, DefineStep } from './types/core';
 
 const defineStep = <G extends AnyGraph>(graph: G): DefineStep<G> => ({
   add: (k, ...needs) => defineStep({ ...graph, [k]: needs }),
