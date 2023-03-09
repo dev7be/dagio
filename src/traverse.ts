@@ -1,10 +1,17 @@
 import type {
   AnyGraph,
   CommitStep,
+  DepsOf,
+  Expand,
   Leafs,
-  PickDepsValues,
   ValuesFor,
 } from './types';
+
+type PickDepsValues<
+  G extends AnyGraph,
+  V extends ValuesFor<G>,
+  K extends keyof G & string,
+> = Expand<Pick<V, DepsOf<G, K> & keyof V>>;
 
 export type OnStep<
   G extends AnyGraph,
@@ -31,14 +38,12 @@ const pickDepsValues = <
   graph: G,
   values: V,
   key: K,
-) => {
-  /** @todo how to remove these 'as'? */
-  const deps = {};
-  graph[key].forEach((k) => {
-    (deps as any)[k] = values[k];
-  });
-  return deps as PickDepsValues<G, V, K>;
-};
+) =>
+  Object.fromEntries(graph[key].map((k) => [k, values[k]])) as PickDepsValues<
+    G,
+    V,
+    K
+  >;
 
 const step = <G extends AnyGraph, V extends ValuesFor<G>>(
   graph: G,
