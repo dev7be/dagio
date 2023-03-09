@@ -1,15 +1,32 @@
 import type {
   AnyGraph,
-  ValuesFor,
-  PickDepsValues,
-  TraverseStep,
   CommitStep,
-} from './types/core';
+  Leafs,
+  PickDepsValues,
+  ValuesFor,
+} from './types';
+
+export type OnStep<
+  G extends AnyGraph,
+  V extends ValuesFor<G>,
+> = keyof V extends keyof G
+  ? {
+      on: <K extends Leafs<G, keyof V & string>, U>(
+        k: K,
+        fn: (v: PickDepsValues<G, V, K>) => U,
+      ) => TraverseStep<G, V & { [k in K]: () => U }>;
+    }
+  : never;
+
+export type TraverseStep<
+  G extends AnyGraph,
+  V extends ValuesFor<G>,
+> = keyof G extends keyof V ? CommitStep<V> : OnStep<G, V>;
 
 const pickDepsValues = <
-  G extends AnyGraph<keyof G>,
+  G extends AnyGraph,
   V extends ValuesFor<G>,
-  K extends keyof G & keyof V,
+  K extends keyof G & keyof V & string,
 >(
   graph: G,
   values: V,

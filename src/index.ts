@@ -1,3 +1,4 @@
-export { define } from './define';
-export { traverse } from './traverse';
-export { resolve, resolved } from './resolve';
+export * from './define';
+export * from './resolve';
+export * from './traverse';
+export * from './types';

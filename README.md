@@ -26,24 +26,6 @@ const dag: {
   readonly e: ["b", "c"];
 }
 */
-
-const mixed = define()
-  .add('a')
-  .add(1)
-  .add('c', 'a', 1)
-  .add(2, 'c')
-  .add(3, 1, 'c')
-  .commit();
-
-/*
-const mixed: {
-  readonly a: [];
-  readonly 1: [];
-  readonly c: ["a", 1];
-  readonly 2: ["c"];
-  readonly 3: [1, "c"];
-}
-*/
 ```
 
 ### `traverse()`

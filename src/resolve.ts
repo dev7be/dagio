@@ -1,4 +1,8 @@
-import type { AnyDepsDict, Resolved } from './types/core';
+import type { AnyDepsDict, Expand } from './types';
+
+export type Resolved<T extends AnyDepsDict> = Expand<{
+  [k in keyof T & string]: ReturnType<T[k]>;
+}>;
 
 export const resolve = <T extends AnyDepsDict>(deps: T): Resolved<T> =>
   Object.keys(deps).reduce(
