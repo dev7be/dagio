@@ -51,8 +51,8 @@ export type AddStep<Deps extends AnyGraph> = {
   add: <K extends Index, Needs extends ReadonlyArray<keyof Deps>>(
     k: Unused<K, keyof Deps>,
     ...needs: Needs
-  ) => FactoryStep<Deps & Readonly<{ [k in K]: Needs }>>;
+  ) => DefineStep<Deps & Readonly<{ [k in K]: Needs }>>;
 };
 
-export type FactoryStep<Deps extends AnyGraph> = CommitStep<Deps> &
+export type DefineStep<Deps extends AnyGraph> = CommitStep<Deps> &
   AddStep<Deps>;

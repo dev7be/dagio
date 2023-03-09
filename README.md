@@ -6,7 +6,7 @@ Work in progress, use at your own discretion.
 
 Just two functions: 
 
-- `factory` is used to build DAGs. It makes it impossible to introduce cycles by design as you can only reference nodes that have already been defined.
+- `define` is used to build DAGs. It makes it impossible to introduce cycles by design as you can only reference nodes that have already been defined.
 - `traverse` lets you traverse a DAG while generating data for each node.
 
 ## Example
