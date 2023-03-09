@@ -1,11 +1,4 @@
-import type {
-  AnyGraph,
-  CommitStep,
-  DepsOf,
-  Expand,
-  Leafs,
-  ValuesFor,
-} from './types';
+import type { AnyGraph, DepsOf, Expand, Leafs, ValuesFor } from './types';
 
 type PickDepsValues<
   G extends AnyGraph,
@@ -13,10 +6,12 @@ type PickDepsValues<
   K extends keyof G & string,
 > = Expand<Pick<V, DepsOf<G, K> & keyof V>>;
 
-export type OnStep<
+export type TraverseStep<
   G extends AnyGraph,
   V extends ValuesFor<G>,
-> = keyof V extends keyof G
+> = keyof G extends keyof V
+  ? { commit: () => { [k in keyof V]: V[k] } }
+  : keyof V extends keyof G
   ? {
       on: <K extends Leafs<G, keyof V & string>, U>(
         k: K,
@@ -25,41 +20,25 @@ export type OnStep<
     }
   : never;
 
-export type TraverseStep<
-  G extends AnyGraph,
-  V extends ValuesFor<G>,
-> = keyof G extends keyof V ? CommitStep<V> : OnStep<G, V>;
+const pick = (src: Record<string, any>, keys: readonly string[]) =>
+  Object.fromEntries(keys.map((k) => [k, src[k]]));
 
-const pickDepsValues = <
-  G extends AnyGraph,
-  V extends ValuesFor<G>,
-  K extends keyof G & keyof V & string,
->(
-  graph: G,
-  values: V,
-  key: K,
-) =>
-  Object.fromEntries(graph[key].map((k) => [k, values[k]])) as PickDepsValues<
+export const traverse = <G extends AnyGraph>(graph: G) => {
+  const values: Record<string, () => any> = {};
+  const total = Object.keys(graph).length;
+  const commitStep = { commit: () => values };
+
+  let count = 0;
+  const onStep = {
+    on: (k: string, v: (arg: any) => any) => {
+      values[k] = () => v(pick(values, graph[k]));
+      count += 1;
+      return total === count ? commitStep : onStep;
+    },
+  };
+
+  return (total === 0 ? commitStep : onStep) as TraverseStep<
     G,
-    V,
-    K
+    Record<never, never>
   >;
-
-const step = <G extends AnyGraph, V extends ValuesFor<G>>(
-  graph: G,
-  values: V,
-): TraverseStep<G, V> =>
-  (Object.keys(graph).length === Object.keys(values).length
-    ? ({
-        commit: () => values,
-      } satisfies CommitStep<V>)
-    : {
-        on: (k, v) =>
-          step(graph, {
-            ...values,
-            [k]: () => v(pickDepsValues(graph, values, k)),
-          }),
-      }) as TraverseStep<G, V>; // @todo how to remove this 'as'?
-
-export const traverse = <T extends AnyGraph>(graph: T) =>
-  step<T, Record<never, never>>(graph, {});
+};

@@ -1,5 +1,3 @@
-export type AnyIndex = string | number | symbol;
-
 export type Expand<T> = T extends object
   ? T extends infer O
     ? { [K in keyof O]: O[K] }
@@ -13,8 +11,6 @@ export type AnyGraph<K extends string = string> = {
 export type AnyDepsDict<K extends string = string> = {
   [k in K]: () => unknown;
 };
-
-export type CommitStep<T> = { commit: () => { [k in keyof T]: T[k] } };
 
 export type DepsOf<
   G extends AnyGraph,
