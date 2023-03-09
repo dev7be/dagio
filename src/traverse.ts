@@ -6,12 +6,13 @@ type PickDepsValues<
   K extends keyof G & string,
 > = Expand<Pick<V, DepsOf<G, K> & keyof V>>;
 
-export type TraverseStep<
+type CommitStep<G extends AnyGraph, V extends ValuesFor<G>> = {
+  commit: () => { [k in keyof V]: V[k] };
+};
+type OnStep<
   G extends AnyGraph,
   V extends ValuesFor<G>,
-> = keyof G extends keyof V
-  ? { commit: () => { [k in keyof V]: V[k] } }
-  : keyof V extends keyof G
+> = keyof V extends keyof G
   ? {
       on: <K extends Leafs<G, keyof V & string>, U>(
         k: K,
@@ -19,6 +20,11 @@ export type TraverseStep<
       ) => TraverseStep<G, V & { [k in K]: () => U }>;
     }
   : never;
+
+export type TraverseStep<
+  G extends AnyGraph,
+  V extends ValuesFor<G>,
+> = keyof G extends keyof V ? CommitStep<G, V> : OnStep<G, V>;
 
 const pick = (src: Record<string, any>, keys: readonly string[]) =>
   Object.fromEntries(keys.map((k) => [k, src[k]]));
