@@ -4,6 +4,8 @@ export type Expand<T> = T extends object
     : never
   : T;
 
+export type SKey<T> = keyof T & string;
+
 export type AnyGraph<K extends string = string> = {
   [k in K]: ReadonlyArray<K>;
 };
@@ -14,17 +16,11 @@ export type AnyDepsDict<K extends string = string> = {
 
 export type DepsOf<
   G extends AnyGraph,
-  K extends keyof G & string,
+  K extends SKey<G>,
 > = G[K] extends ReadonlyArray<infer U> ? U : never;
 
-export type DepsOfMinus<
-  G extends AnyGraph,
-  K extends keyof G & string,
-  Skip extends keyof G & string = never,
-> = Exclude<DepsOf<G, K>, Skip>;
+export type Leafs<G extends AnyGraph, Done extends SKey<G> = never> = {
+  [k in SKey<G>]: Exclude<DepsOf<G, k>, Done> extends never ? k : never;
+}[Exclude<SKey<G>, Done>];
 
-export type Leafs<G extends AnyGraph, Skip extends keyof G & string = never> = {
-  [k in keyof G & string]: DepsOfMinus<G, k, Skip> extends never ? k : never;
-}[Exclude<keyof G & string, Skip>];
-
-export type ValuesFor<G> = { [k in keyof G]?: () => unknown };
+export type ValuesFor<G> = { [k in SKey<G>]?: () => unknown };

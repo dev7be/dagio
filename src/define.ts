@@ -1,12 +1,12 @@
-import type { AnyGraph } from './types';
+import type { AnyGraph, SKey } from './types';
 
-export type Define<G extends AnyGraph> = {
-  add: <K extends string, Deps extends ReadonlyArray<keyof G & string>>(
-    k: Exclude<K, keyof G & string>,
+type Define<G extends AnyGraph> = {
+  add: <K extends string, Deps extends ReadonlyArray<SKey<G>>>(
+    k: Exclude<K, SKey<G>>,
     ...deps: Deps
   ) => Define<G & Readonly<{ [k in K]: Deps }>>;
 
-  commit: () => { [k in keyof G]: G[k] };
+  commit: () => { [k in SKey<G>]: G[k] };
 };
 
 export const define = () => {
