@@ -1,8 +1,4 @@
-import type { AnyDepsDict, Expand, SKey } from './types';
-
-export type Resolved<T extends AnyDepsDict> = Expand<{
-  [k in SKey<T>]: ReturnType<T[k]>;
-}>;
+import type { AnyDepsDict, Resolved } from './types';
 
 export const resolve = <T extends AnyDepsDict>(deps: T): Resolved<T> =>
   Object.keys(deps).reduce((acc, c) => {

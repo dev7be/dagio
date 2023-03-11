@@ -1,9 +1,5 @@
 {
   "compilerOptions": {
-    "target": "ES2015",
-    "module": "commonjs",
-    "outDir": "dist",
-    "declaration": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
