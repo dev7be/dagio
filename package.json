@@ -2,8 +2,8 @@
   "name": "dagio",
   "version": "0.3.3",
   "description": "Typesafe and simple DAG package",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "clean": "rimraf dist/*",
     "test": "echo \"Error: no test specified\" && exit 1",

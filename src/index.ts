@@ -1,11 +1,4 @@
-import { define, extend } from './define';
-import { resolve, resolved } from './resolve';
-import { traverse } from './traverse';
-
-export default {
-  define,
-  extend,
-  resolve,
-  resolved,
-  traverse,
-};
+export * from './define';
+export * from './resolve';
+export * from './traverse';
+export * from './types';
