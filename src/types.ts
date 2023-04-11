@@ -1,11 +1,3 @@
-export type Expand<T> = T extends object
-  ? T extends infer O
-    ? { [K in keyof O]: O[K] }
-    : never
-  : T;
-
-type SKey<T> = keyof T & string;
-
 export type AnyGraph<K extends string = string> = {
   readonly [k in K]: readonly K[];
 };
@@ -14,53 +6,46 @@ export type AnyDepsDict<K extends string = string> = {
   readonly [k in K]: () => unknown;
 };
 
-type DepsOf<
-  G extends AnyGraph,
-  K extends SKey<G>,
-> = G[K] extends readonly (infer U)[] ? U : never;
+type DepsOf<G extends AnyGraph, K extends keyof G> = G[K][number];
 
-type Leafs<G extends AnyGraph, Done extends SKey<G> = never> = {
-  [k in SKey<G>]: Exclude<DepsOf<G, k>, Done> extends never ? k : never;
-}[Exclude<SKey<G>, Done>];
-
-type ValuesFor<G> = { [k in SKey<G>]?: () => unknown };
+type Leafs<G extends AnyGraph, Done = never> = Exclude<
+  {
+    [k in keyof G]: Exclude<DepsOf<G, k>, Done> extends never ? k : never;
+  }[keyof G],
+  Done
+>;
 
 export type Define<G extends AnyGraph> = {
-  add: <K extends string, Deps extends ReadonlyArray<SKey<G>>>(
-    k: Exclude<K, SKey<G>>,
+  add: <K extends string, Deps extends ReadonlyArray<keyof G>>(
+    k: Exclude<K, keyof G>,
     ...deps: Deps
   ) => Define<G & Readonly<{ [k in K]: Deps }>>;
 
-  commit: () => { [k in SKey<G>]: G[k] };
+  commit: () => { [k in keyof G]: G[k] };
 };
 
-export type Resolved<T extends AnyDepsDict> = Expand<{
-  [k in SKey<T>]: ReturnType<T[k]>;
-}>;
+export type Resolved<T extends AnyDepsDict> = {
+  [k in keyof T]: ReturnType<T[k]>;
+};
 
-type PickDepsValues<
-  G extends AnyGraph,
-  V extends ValuesFor<G>,
-  K extends SKey<G>,
-> = Expand<Pick<V, DepsOf<G, K> & keyof V>>;
+type PickDepsValues<G extends AnyGraph, V, K extends keyof G> = {
+  [k in DepsOf<G, K> & keyof V]: V[k];
+};
 
-type CommitStep<G extends AnyGraph, V extends ValuesFor<G>> = {
+type CommitStep<V> = {
   commit: () => { [k in keyof V]: V[k] };
 };
 
-type OnStep<
-  G extends AnyGraph,
-  V extends ValuesFor<G>,
-> = keyof V extends keyof G
-  ? {
-      on: <K extends Leafs<G, SKey<V>>, U>(
-        k: K,
-        fn: (v: PickDepsValues<G, V, K>) => U,
-      ) => Traverse<G, V & { [k in K]: () => U }>;
-    }
-  : never;
+// utility type for DX
+type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 
-export type Traverse<
-  G extends AnyGraph,
-  V extends ValuesFor<G>,
-> = keyof G extends keyof V ? CommitStep<G, V> : OnStep<G, V>;
+type OnStep<G extends AnyGraph, V> = {
+  on: <K extends Leafs<G, keyof V>, U>(
+    k: K,
+    fn: (v: Expand<PickDepsValues<G, V, K>>) => U,
+  ) => Traverse<G, V & { [k in K]: () => U }>;
+};
+
+export type Traverse<G extends AnyGraph, V> = keyof G extends keyof V
+  ? CommitStep<V>
+  : OnStep<G, V>;
